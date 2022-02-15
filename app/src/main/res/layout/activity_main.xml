@@ -23,4 +23,16 @@
         android:onClick="stop"
         android:text="停止" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="aec"
+        android:text="回声消除" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="aecFromFile"
+        android:text="回声消除File" />
+
 </LinearLayout>
