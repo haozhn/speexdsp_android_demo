@@ -22,4 +22,8 @@ public class SpeexJNIBridge {
      * @return 处理好的数据
      */
     public static native byte[] cancellation(byte[] inBuffer, byte[] playBuffer);
+
+    public static native void echoPlayback(byte[] playBuffer);
+
+    public static native byte[] echoCapture(byte[] captureBuffer);
 }

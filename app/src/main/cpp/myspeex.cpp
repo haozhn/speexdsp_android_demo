@@ -92,3 +92,32 @@ Java_com_gloomyer_myspeex_interfaces_SpeexJNIBridge_cancellation(JNIEnv *env, jc
     env->ReleaseByteArrayElements(retBuffer_, retBuffer, 0);
     return retBuffer_;
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_gloomyer_myspeex_interfaces_SpeexJNIBridge_echoPlayback(JNIEnv *env, jclass clazz,
+                                                                 jbyteArray play_buffer) {
+    jbyte *playBuffer = env->GetByteArrayElements(play_buffer, nullptr);
+    auto *play = (short *) playBuffer;
+    speex_echo_playback(echoState, play);
+
+    env->ReleaseByteArrayElements(play_buffer, playBuffer, 0);
+}
+
+extern "C"
+JNIEXPORT jbyteArray JNICALL
+Java_com_gloomyer_myspeex_interfaces_SpeexJNIBridge_echoCapture(JNIEnv *env, jclass clazz,
+                                                                jbyteArray capture_buffer) {
+    jbyte *inBuffer = env->GetByteArrayElements(capture_buffer, nullptr);
+    jsize length = env->GetArrayLength(capture_buffer);
+    jbyteArray retBuffer_ = env->NewByteArray(length);
+    jbyte *retBuffer = env->GetByteArrayElements(retBuffer_, nullptr);
+
+    auto *in = (short *) inBuffer;
+    auto *ret = (short *) retBuffer;
+    speex_echo_capture(echoState, in, ret);
+
+    env->ReleaseByteArrayElements(capture_buffer, inBuffer, 0);
+    env->ReleaseByteArrayElements(retBuffer_, retBuffer, 0);
+    return retBuffer_;
+}
