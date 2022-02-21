@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.4.1)
 
-add_library(myspeex SHARED src/main/cpp/myspeex.cpp)
+add_library(myspeex SHARED
+        src/main/cpp/myspeex.cpp
+        src/main/cpp/delay_estimator.cc
+        src/main/cpp/delay_estimator_wrapper.cc
+        )
 
 target_include_directories(myspeex PRIVATE ${CMAKE_SOURCE_DIR}/src/main/cpp/include/)
 
