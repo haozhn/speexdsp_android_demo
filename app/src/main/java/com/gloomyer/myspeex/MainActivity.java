@@ -110,13 +110,14 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 try {
 //                    final int minBufferSize = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE, AUDIO_CHANNEL, AUDIO_FORMAT);
-                    SpeexJNIBridge.init(640, AUDIO_SAMPLE_RATE);
-                    FileInputStream misFis = new FileInputStream(new File(getFilesDir(), "mix.pcm"));
-                    FileInputStream pureFis = new FileInputStream(new File(getFilesDir(), "pure.pcm"));
-                    FileOutputStream fos = new FileOutputStream(new File(getFilesDir(), "speex_aec.pcm"));
+                    int processSize = 640;
+                    SpeexJNIBridge.init(processSize, AUDIO_SAMPLE_RATE);
+                    FileInputStream misFis = new FileInputStream(new File(getFilesDir(), "mix_1280.pcm"));
+                    FileInputStream pureFis = new FileInputStream(new File(getFilesDir(), "tts_1280.pcm"));
+                    FileOutputStream fos = new FileOutputStream(new File(getFilesDir(), "file_aec.pcm"));
 
-                    byte[] mixBuffer = new byte[640];
-                    byte[] pureBuffer = new byte[640];
+                    byte[] mixBuffer = new byte[processSize];
+                    byte[] pureBuffer = new byte[processSize];
                     int mixLen = -1;
                     int pureLen = -1;
                     while ((mixLen = misFis.read(mixBuffer)) != -1 && (pureLen = pureFis.read(pureBuffer)) != -1) {

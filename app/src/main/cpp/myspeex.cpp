@@ -3,11 +3,114 @@
 #include <speex/speex_preprocess.h>
 #include <speex/speex_echo.h>
 #include <android/log.h>
+#include "echo_control_mobile_impl.h"
+#include "audio_processing.h"
+#include "audio_buffer.h"
 
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "gloomy", __VA_ARGS__)
+#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "haozhinan", __VA_ARGS__)
+#define NUM_REVERSE_CHANNELS 1
+#define NUM_OUTPUT_CHANNELS  1
+
+#define RETURN_ON_ERR(expr) \
+  do {                      \
+    int err = (expr);       \
+    if (err != webrtc::AudioProcessing::kNoError) {  \
+      return err;           \
+    }                       \
+  } while (0)
 
 SpeexPreprocessState *state = nullptr;
 SpeexEchoState *echoState = nullptr;
+std::unique_ptr<webrtc::EchoControlMobileImpl> echo_control_mobile;
+
+
+
+//static void QueueNonbandedRenderAudio(webrtc::AudioBuffer* audio) {
+////    ResidualEchoDetector::PackRenderAudioBuffer(audio, &red_render_queue_buffer_);
+////    __android_log_print(ANDROID_LOG_ERROR, "haozhinan", "%s", "QueueNonbandedRenderAudio");
+//    // Insert the samples into the queue.
+//    if (!red_render_signal_queue_->Insert(&red_render_queue_buffer_)) {
+//        // The data queue is full and needs to be emptied.
+//        EmptyQueuedRenderAudio();
+//
+//        // Retry the insert (should always work).
+//        bool result = red_render_signal_queue_->Insert(&red_render_queue_buffer_);
+//        RTC_DCHECK(result);
+//    }
+//}
+
+static int ProcessRenderStreamLocked() {
+//    webrtc::AudioBuffer* render_buffer = render_.render_audio.get();  // For brevity.
+
+//    HandleRenderRuntimeSettings();
+
+
+//    QueueNonbandedRenderAudio(render_buffer);
+
+//    if (submodule_states_.RenderMultiBandSubModulesActive() &&
+//        SampleRateSupportsMultiBand(
+//                formats_.render_processing_format.sample_rate_hz())) {
+//        render_buffer->SplitIntoFrequencyBands();
+//    }
+//
+//    if (submodule_states_.RenderMultiBandSubModulesActive()) {
+//        QueueBandedRenderAudio(render_buffer);
+//    }
+//
+//    // TODO(peah): Perform the queuing inside QueueRenderAudiuo().
+//    if (submodules_.echo_controller) {
+//        submodules_.echo_controller->AnalyzeRender(render_buffer);
+//    }
+//
+//    if (submodule_states_.RenderMultiBandProcessingActive() &&
+//        SampleRateSupportsMultiBand(
+//                formats_.render_processing_format.sample_rate_hz())) {
+//        render_buffer->MergeFrequencyBands();
+//    }
+//
+//    return kNoError;
+}
+
+static int ProcessReverseStream(const int16_t* const src,
+                                const webrtc::StreamConfig& input_config,
+                                const webrtc::StreamConfig& output_config,
+                                int16_t* const dest) {
+    LOGE("%s", "ProcessReverseStream_AudioFrame");
+
+    if (input_config.num_channels() <= 0) {
+        return webrtc::AudioProcessing::Error::kBadNumberChannelsError;
+    }
+
+//    MutexLock lock(&mutex_render_);
+//    ProcessingConfig processing_config = formats_.api_format;
+//    processing_config.reverse_input_stream().set_sample_rate_hz(
+//            input_config.sample_rate_hz());
+//    processing_config.reverse_input_stream().set_num_channels(
+//            input_config.num_channels());
+//    processing_config.reverse_output_stream().set_sample_rate_hz(
+//            output_config.sample_rate_hz());
+//    processing_config.reverse_output_stream().set_num_channels(
+//            output_config.num_channels());
+//
+//    RETURN_ON_ERR(MaybeInitializeRender(processing_config));
+//    if (input_config.num_frames() !=
+//        formats_.api_format.reverse_input_stream().num_frames()) {
+//        return kBadDataLengthError;
+//    }
+
+//    if (aec_dump_) {
+//        aec_dump_->WriteRenderStreamMessage(src, input_config.num_frames(),
+//                                            input_config.num_channels());
+//    }
+
+    render_.render_audio->CopyFrom(src, input_config);
+    RETURN_ON_ERR(ProcessRenderStreamLocked());
+    if (submodule_states_.RenderMultiBandProcessingActive() ||
+        submodule_states_.RenderFullBandProcessingActive()) {
+        render_.render_audio->CopyTo(output_config, dest);
+    }
+    return webrtc::AudioProcessing::kNoError;
+}
 
 extern "C"
 JNIEXPORT void JNICALL
@@ -15,7 +118,7 @@ Java_com_gloomyer_myspeex_interfaces_SpeexJNIBridge_init(JNIEnv *env, jclass typ
                                                          jint frame_size, jint sampling_rate) {
 
     frame_size /= 2;
-    int filterLength = frame_size * 8;
+    int filterLength = frame_size * 20;
 
     //降噪初始化
     state = speex_preprocess_state_init(frame_size, sampling_rate);
@@ -40,6 +143,11 @@ Java_com_gloomyer_myspeex_interfaces_SpeexJNIBridge_init(JNIEnv *env, jclass typ
 
     //关联
     speex_preprocess_ctl(state, SPEEX_PREPROCESS_SET_ECHO_STATE, echoState);
+
+    echo_control_mobile.reset(new webrtc::EchoControlMobileImpl());
+    echo_control_mobile->Initialize(sampling_rate,
+                                    NUM_REVERSE_CHANNELS,
+                                    NUM_OUTPUT_CHANNELS);
 }
 
 extern "C"

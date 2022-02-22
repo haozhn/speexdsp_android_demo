@@ -154,10 +154,10 @@ class ArrayView final : public impl::ArrayViewBase<T, Size> {
   template <typename U>
   ArrayView(U* data, size_t size)
       : impl::ArrayViewBase<T, Size>::ArrayViewBase(data, size) {
-    RTC_DCHECK_EQ(size == 0 ? nullptr : data, this->data());
-    RTC_DCHECK_EQ(size, this->size());
-    RTC_DCHECK_EQ(!this->data(),
-                  this->size() == 0);  // data is null iff size == 0.
+//    RTC_DCHECK_EQ(size == 0 ? nullptr : data, this->data());
+//    RTC_DCHECK_EQ(size, this->size());
+//    RTC_DCHECK_EQ(!this->data(),
+//                  this->size() == 0);  // data is null iff size == 0.
   }
 
   // Construct an empty ArrayView. Note that fixed-size ArrayViews of size > 0
@@ -168,7 +168,7 @@ class ArrayView final : public impl::ArrayViewBase<T, Size> {
   ArrayView(std::nullptr_t, size_t size)
       : ArrayView(static_cast<T*>(nullptr), size) {
     static_assert(Size == 0 || Size == impl::kArrayViewVarSize, "");
-    RTC_DCHECK_EQ(0, size);
+//    RTC_DCHECK_EQ(0, size);
   }
 
   // Construct an ArrayView from a C-style array.
@@ -251,8 +251,8 @@ class ArrayView final : public impl::ArrayViewBase<T, Size> {
   // const, because the ArrayView doesn't own the array. (To prevent mutation,
   // use a const element type.)
   T& operator[](size_t idx) const {
-    RTC_DCHECK_LT(idx, this->size());
-    RTC_DCHECK(this->data());
+//    RTC_DCHECK_LT(idx, this->size());
+//    RTC_DCHECK(this->data());
     return this->data()[idx];
   }
   T* begin() const { return this->data(); }
